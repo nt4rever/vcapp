@@ -1,6 +1,11 @@
-.faucet-wrapper {
+.vcapp-wrapper {
   height: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  /* align-items: center; */
+}
+
+.vc-button-info {
+  display: flex;
+  justify-content: center;
 }
