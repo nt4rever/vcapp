@@ -25,12 +25,14 @@ contract VC {
         string memory dateOfBirth
     ) external {
         address userAddress = msg.sender;
-        checkUsers[userAddress] = true;
         User storage u = users[userAddress];
         u.name = name;
         u.age = age;
         u.dateOfBirth = dateOfBirth;
-        u.numOfVaccine = 0;
+        if (!checkUsers[userAddress]){
+            u.numOfVaccine = 0;
+            checkUsers[userAddress] = true;
+        }
     }
 
     function addVaccine(

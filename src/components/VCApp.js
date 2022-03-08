@@ -12,6 +12,7 @@ function VCApp() {
     const [account, setAccount] = useState(null);
     const [userInfo, setUserInfo] = useState({ name: null, age: null, dateOfBirth: null });
     const [newVaccine, setNewVaccine] = useState({ nameVaccine: null, date: null, vaccinationFacility: null });
+    const [vaccineData, setVaccineData] = useState([]);
     const [loadInfo, setLoadInfo] = useState(false);
 
     useEffect(() => {
@@ -41,7 +42,7 @@ function VCApp() {
 
     const getInfo = async () => {
         web3Api.provider.request({ method: 'eth_requestAccounts' });
-        const { contract, web3 } = web3Api;
+        const { contract } = web3Api;
         const u = await contract.getUser(account, {
             from: account
         });
@@ -50,16 +51,35 @@ function VCApp() {
             age: u[1],
             dateOfBirth: u[2]
         });
-        setLoadInfo(true);
+        if (userInfo.name !== "null")
+            setLoadInfo(true);
     }
 
     const updateInfo = async () => {
-        const { contract, web3 } = web3Api;
+        const { contract } = web3Api;
         await contract.createUser(userInfo.name, userInfo.age, userInfo.dateOfBirth, { from: account });
     }
 
     const addVaccineHandler = async () => {
-        console.log(newVaccine)
+        const { contract } = web3Api;
+        await contract.addVaccine(newVaccine.nameVaccine, newVaccine.date, newVaccine.vaccinationFacility, { from: account });
+        setNewVaccine({ nameVaccine: null, date: null, vaccinationFacility: null });
+    }
+
+    const getVaccineData = async () => {
+        const { contract } = web3Api;
+        const data = await contract.readVaccine({
+            from: account
+        });
+        const vcData = [];
+        data.forEach(el => {
+            vcData.push({
+                nameVaccine: el['nameVaccine'],
+                date: el['date'],
+                vaccinationFacility: el['vaccinationFacility']
+            });
+        });
+        setVaccineData(vcData);
     }
 
     return (
@@ -132,13 +152,39 @@ function VCApp() {
                                 </div>
                             </form>
                         </div>
-                        <div className="vc-button-info mt-1">
+                        <div className="vc-button-info mt-2">
                             <button className="button is-success" onClick={addVaccineHandler}>Thêm mũi tiêm</button>
                         </div>
                     </div>
                 ) : ""}
 
             </div>
+            {loadInfo ? (<div className="vc-vaccine-info mt-2 ml-2">
+                <h3>Dữ liệu tiêm vaccine của bạn</h3>
+                <div className="box mt-1">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Tên vaccine</th>
+                                <th>Ngày tiêm</th>
+                                <th>Cơ sở tiêm</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                vaccineData.map((data, index) => (
+                                    <tr key={index}>
+                                        <td>{data.nameVaccine}</td>
+                                        <td>{data.date}</td>
+                                        <td>{data.vaccinationFacility}</td>
+                                    </tr>
+                                ))
+                            }
+                        </tbody>
+                    </table>
+                    <button className="button is-primary" onClick={getVaccineData}>Lấy dữ liệu vaccine</button>
+                </div>
+            </div>) : ""}
         </div>
     );
 }
